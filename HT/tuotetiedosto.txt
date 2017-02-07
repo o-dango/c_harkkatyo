@@ -1,0 +1,7 @@
+pullo 0.33 0.10
+pullo 0.5 0.20
+pullo 1.5 0.40
+tölkki 0.33 0.15
+tölkki 0.5 0.15
+kossupullo 0.75 0.20
+maitopurkki 1.00 0.00
