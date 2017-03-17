@@ -13,11 +13,6 @@
  #include "tiedostomoduli.h"
  #include "apufunktiot.h"
 
-struct tLista;
-struct nLista;
-typedef struct tLista *pTiedot;
-typedef struct nLista *Maara;
-
 
  int tVaraaMuisti(pTiedot *pA, char *tyyppi, float tilavuus, float pantti) {    /*tyyppilistan teko*/
 
@@ -29,25 +24,25 @@ typedef struct nLista *Maara;
     }
 
     else {
-        ptrUusi->Ltyyppi = malloc(strlen(tyyppi)+1);                            /*lisätään listalle asiat*/
+        ptrUusi->Ltyyppi = malloc(strlen(tyyppi)+1);                            /*lisätään listalle tiedot*/
         strcpy(ptrUusi->Ltyyppi, tyyppi);
         ptrUusi->Ltilavuus = tilavuus;
         ptrUusi->Lpantti = pantti;
-        ptrUusi->ptSeuraava = NULL;
+        ptrUusi->ptSeuraava = NULL;                                             /*tiedoista seuraava solmu alustetaan tyhjäksi*/
 
-        if (*pA == NULL) {                                                      /*jos lisättävät jutut on ensimmäisiä*/
+        if (*pA == NULL) {                                                      /*jos lisättävät tiedot ovat ensimmäisiä*/
             *pA = ptrUusi;
         }
-        else {
+        else {                                                                  /*muulloin*/
             ptr = *pA;
 
-            while ( ptr->ptSeuraava != NULL) {                                  /*muulloin*/
-                ptr = ptr->ptSeuraava;
+            while ( ptr->ptSeuraava != NULL) {
+                ptr = ptr->ptSeuraava;                                          /*siirretään apupointeri listan seuraavaan solmuun*/
             }
 
-            ptr->ptSeuraava = ptrUusi;
+            ptr->ptSeuraava = ptrUusi;                                          /*lisätään tiedot listalle*/
         }
-        return 1;
+        return 1;                                                               /*palauttaa ykkösen jos kaikki onnistuu*/
     }
 }
 
@@ -66,18 +61,18 @@ int pVaraaMuisti(Maara *pAlku, int luku) {                                      
         ptrUusi->pnSeuraava = NULL;
 
         if (*pAlku == NULL) {                                                   /*jos listan ensimmäinen alkio*/
-            *pAlku = ptrUusi;
+            *pAlku = ptrUusi;                                                   /*lisätään suoraan listan ensimmäiseksi*/
         }
         else {                                                                  /*muulloin*/
             ptr = *pAlku;
 
             while ( ptr->pnSeuraava != NULL) {
-                ptr = ptr->pnSeuraava;
+                ptr = ptr->pnSeuraava;                                          /*siirretään apupointeri listan seuraavaan solmuun*/
             }
 
-            ptr->pnSeuraava = ptrUusi;
+            ptr->pnSeuraava = ptrUusi;                                          /*lisätään tiedot listalle*/
         }
-        return 1;
+        return 1;                                                               /*palauttaa ykkösen jos kaikki onnistuu*/
     }
 }
 
@@ -86,17 +81,17 @@ void tVapautaMuisti(pTiedot pA) {                                               
 
     struct tLista *ptr = pA;
 
-    if (ptr == NULL) {                                                          /*jos lista on tyhjä*/
-
+    if (ptr == NULL) {
+        //lista on tyhjä
     }
 
     else {
 
         while(ptr != NULL) {
             pA = ptr->ptSeuraava;
-            free(ptr->Ltyyppi);
-            free(ptr);
-            ptr = pA;
+            free(ptr->Ltyyppi);                                                 /*vapautetaan tyypin muistipaikka*/
+            free(ptr);                                                          /*vapautetaan solmun muistipaikka*/
+            ptr = pA;                                                           /*siirretään apupointeri takaisin alkuun*/
         }
     }
 }
@@ -104,18 +99,18 @@ void tVapautaMuisti(pTiedot pA) {                                               
 
 void pVapautaMuisti(Maara pAlku) {                                              /*numerolistan tyhjennys*/
 
-    struct nLista *ptr = pAlku;                                                 /*jos lista on tyhjä*/
+    struct nLista *ptr = pAlku;
 
     if (ptr == NULL) {
-
+        //lista on tyhjä
     }
 
     else {
 
         while(ptr != NULL) {
             pAlku = ptr->pnSeuraava;
-            free(ptr);
-            ptr = pAlku;
+            free(ptr);                                                          /*vapautetaan solmun muistipaikka*/
+            ptr = pAlku;                                                        /*siirretään apupointeri takaisin alkuun*/
         }
     }
 }

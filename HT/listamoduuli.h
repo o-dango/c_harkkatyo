@@ -2,8 +2,6 @@
 
  #ifndef LISTAMODUULI
  #define LISTAMODUULI
- typedef struct tLista *pTiedot;
- typedef struct nLista *Maara;
  struct tLista {                                                                /*määritellään tarvittavat listat*/
      char* Ltyyppi;
      float Ltilavuus;
@@ -11,20 +9,20 @@
      struct tLista *ptSeuraava;
  };
 
- typedef struct tLista *pTiedot;
+ typedef struct tLista *pTiedot;                                                /*lista tuotetiedoille*/
 
  struct nLista {
      int numero;
      struct nLista *pnSeuraava;
  };
 
- typedef struct nLista *Maara;
+ typedef struct nLista *Maara;                                                  /*lista palautuksille*/
 
 
-extern int tVaraaMuisti(pTiedot *pA, char *tyyppi, float tilavuus, float pantti);
-extern int pVaraaMuisti(Maara *pAlku, int luku);
-extern void tVapautaMuisti(pTiedot pA);
-extern void pVapautaMuisti(Maara pAlku);
+int tVaraaMuisti(pTiedot *pA, char *tyyppi, float tilavuus, float pantti);
+int pVaraaMuisti(Maara *pAlku, int luku);
+void tVapautaMuisti(pTiedot pA);
+void pVapautaMuisti(Maara pAlku);
 #endif
 
 /*eof*/

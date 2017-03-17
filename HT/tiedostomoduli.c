@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 
 void tiedostoLuku(pTiedot *pA) {												/*Aliohjelma tuotetietojen lukuun*/
@@ -20,41 +21,74 @@ void tiedostoLuku(pTiedot *pA) {												/*Aliohjelma tuotetietojen lukuun*/
 	FILE* tiedosto;																/*Määrittelyjä*/
 	char puskuri[CHAR_MAX];
 	char *pApu;
-	int i;
+	int i, j = 0;
+	int tarkistus = 0;
 	char *tyyppi;
 	float tilavuus, pantti;
 
-	if ((tiedosto=fopen("tuotetiedosto.txt","r")) == NULL) {					/*Avatataan tiedosto lukutilaan*/
-		printf("Tiedoston avaaminen epäonnistui.\n");							/*Jos tiedoston avaaminen epäonnistuu*/
-		fclose(tiedosto);
+	if ((tiedosto = fopen("tuotetiedosto.txt","r")) == NULL) {					/*Avatataan tiedosto lukutilaan*/
+		perror("Tiedoston avaaminen epäonnistui");								/*Jos tiedoston avaaminen epäonnistuu*/
 		exit(1);
 	}
 
+	printf("\n");
 	while(fgets(puskuri,(sizeof(puskuri)), tiedosto) != NULL) {					/*Käydään tiedosto läpi rivi kerrallaan ja luetaan tiedot talteen*/
 
-		i=0;
-		pApu=strtok(puskuri," ");
+		i = 0;
+		j = j + 1;
+		tarkistus = 0;
+		pApu = strtok(puskuri," ");
 		while(pApu) {
-			if(i == 0) {
-				tyyppi = pApu;
+			if (i == 0) {
+				if (TarkistaTiedosto(pApu) == 0) {								/*Tarkistetaan onko tiedot oikeaa tyyppiä*/
+					tyyppi = pApu;
+				}
+				else {
+					tarkistus = 1;
+				}
 			}
-			else if(i == 1) {
-				tilavuus = atof(pApu);
+
+			else if (i == 1) {
+				if (TarkistaTiedosto(pApu) == 1) {								/*Tarkistetaan onko tiedot oikeaa tyyppiä*/
+					tilavuus = atof(pApu);
+				}
+				else {
+					tarkistus = 1;
+				}
 			}
-			else if(i == 2) {
-				pantti = atof(pApu);
+
+			else if (i == 2) {
+				if (TarkistaTiedosto(pApu) == 1) {								/*Tarkistetaan onko tiedot oikeaa tyyppiä*/
+					pantti = atof(pApu);
+				}
+				else {
+					tarkistus = 1;
+				}
 			}
-			i=i+1;
-			pApu=strtok(NULL, " ");
+
+			i=i + 1;
+			pApu=strtok(NULL, " ");												/*Erotellaan rivillä olevat tiedot toisistaan*/
 		}
 
-		if(tVaraaMuisti(pA,tyyppi,tilavuus,pantti) == 0) {						/*Varataan muistia luetuille tiedoille ja tallennetaan tiedot listaan*/
-			printf("Muistin varaus epäonnistui!\n");							/*Jos muistin varaaminen epäonnistuu*/
-			//fflush(tiedosto);
-			fclose(tiedosto);
-			exit(0);
+		if (tarkistus == 0) {
+			if(tVaraaMuisti(pA,tyyppi,tilavuus,pantti) == 0) {					/*Varataan muistia luetuille tiedoille ja tallennetaan tiedot listaan*/
+				perror("Muistin varaus epäonnistui");							/*Jos muistin varaaminen epäonnistuu*/
+				fclose(tiedosto);
+				exit(1);
+			}
 		}
 
+		else {
+			printf("Virhe tuotetiedostossa rivillä %d.\n", j);					/*Ilmoitetaan, jos on virheellisiä rivejä*/
+		}
+
+	}
+
+	if (j == 0) {																/*Jos tiedosto oli tyhjä*/
+		perror("Suljetaan pullonpalautusautomaatti");
+		printf("Tuotetiedosto on tyhjä!\n");
+		fclose(tiedosto);
+		exit(1);
 	}
 	fclose(tiedosto);															/*Suljetaan tiedosto*/
 }
@@ -66,40 +100,27 @@ void tulostaKuitti(pTiedot *pA, Maara *pAlku) {									/*Aliohjelma kuitin tulo
 	struct nLista *ptr;
 	float summa = 0;
 	int laskuri = 0;
-	int valisumma=0;
-	int i;
-	int k=1;																	/*Laskuri eri tuotetyyppien läpikäymiseen*/
+	int valisumma = 0;
+	int i, k = 1;																/*Laskuri eri tuotetyyppien läpikäymiseen*/
+	char aikaleima[20];
 
 	ptrr = *pA;																	/*Pointterit osoittamaan listojen alkuun*/
 	ptr = *pAlku;
-
-	time_t nyt;																	/*Haetaan aika ja siihen liittyviä määrittelyjä*/
-	struct tm *aika;
-	time(&nyt);
-	aika = localtime(&nyt);
 
 	while(ptr != NULL) {														/*Lasketaan palautettujen pullojen määrä*/
 		laskuri = laskuri+1;
 		ptr=ptr->pnSeuraava;
 	}
 
-	if (aika->tm_min < 10){														/*Tulostetaan kuitin otsikkorivi*/
-		printf("Kuitti %d.%d.%d %d:0%d\n", aika->tm_mday, aika->tm_mon + 1,		/*Jos minuutit välillä 0-9*/
-		aika->tm_year + 1900, aika->tm_hour, aika->tm_min);
-	}
-	else {
-		printf("Kuitti %d.%d.%d %d:%d\n", aika->tm_mday, aika->tm_mon + 1,		/*Jos minuutit välillä 10-59*/
-		aika->tm_year + 1900, aika->tm_hour, aika->tm_min);
-	}
-
-	//printf("Kuitti\n");														/*Vioperivi*/
+	haeAika(aikaleima);
+	printf("\nKuitti %s\n", aikaleima);
 	printf("Palautetut pullot ja tölkit yhteensä %d kappaletta.\n",laskuri);	/*Tulostetaan palautettujen pullojen lukumäärä*/
 
 	while(ptrr != NULL) {														/*Käydään kaikki tuotevaihtoehdot läpi*/
 		valisumma = 0;
-		ptr=*pAlku;																/*Joka kierroksella aloitetaan palautuslistan alusta*/
+		ptr = *pAlku;															/*Joka kierroksella aloitetaan palautuslistan alusta*/
 
-		for(i=0; i < laskuri; i++) {											/*Käydään kaikki palautuslistan alkiot läpi*/
+		for(i = 0; i < laskuri; i++) {											/*Käydään kaikki palautuslistan alkiot läpi*/
 
 			if((ptr->numero) == k) {											/*Lasketaan kunkin tuotetyypin palautusten lukumäärä*/
 				valisumma = valisumma + 1;
@@ -127,37 +148,24 @@ void tulostaKuitti(pTiedot *pA, Maara *pAlku) {									/*Aliohjelma kuitin tulo
 
 void valiLoki(pTiedot *pA, int numero) {										/*Aliohjelma tietojen tallentamiseen tilapäislokiin*/
 
-	time_t nyt;																	/*Haetaan aika ja siihen liittyviä määrittelyjä*/
-	struct tm *aika;
-	time(&nyt);
-	aika = localtime(&nyt);
-
 	FILE* tiedosto;
-	int i; 																		/*laskuri oikean tuotemuodon tulostamista varten*/
+	int i; 																		/*Laskuri oikean tuotemuodon tulostamista varten*/
 	struct tLista *ptr;
+	char aikaleima[20];
 
 	if ((tiedosto=fopen("tilapaistiedosto.txt","a")) == NULL) {					/*Avataan tilapäisloki lisäys-tilaan*/
-		printf("Tiedoston avaaminen epäonnistui.\n");							/*Jos tiedoston avaaminen epäonnistuu*/
+		perror("Tiedoston avaaminen epäonnistui");								/*Jos tiedoston avaaminen epäonnistuu*/
 		exit(1);
 	}
 
-	ptr=*pA;
+	ptr = *pA;
 
-	for(i=1; i<numero; i++) {													/*Etsitään tuotelistasta oikea kohta*/
-		ptr=ptr->ptSeuraava;
-	}
-																				/*Kirjoitetaan tiedot tilapäislokiin*/
-	if (aika->tm_min < 10){														/*Jos minuutit välillä 0-9*/
-		fprintf(tiedosto, "%d.%d.%d %d:0%d:%s-%4.2fl:%4.2f€.\n", aika->tm_mday, aika->tm_mon + 1, aika->tm_year + 1900,
-		aika->tm_hour, aika->tm_min, ptr->Ltyyppi, ptr->Ltilavuus, ptr->Lpantti);
-	}
-	else {																		/*Jos minuutit välillä 10-59*/
-		fprintf(tiedosto, "%d.%d.%d %d:%d:%s-%4.2fl:%4.2f€.\n", aika->tm_mday, aika->tm_mon + 1, aika->tm_year + 1900,
-		aika->tm_hour, aika->tm_min, ptr->Ltyyppi, ptr->Ltilavuus, ptr->Lpantti);
+	for(i = 1; i<numero; i++) {													/*Etsitään tuotelistasta oikea kohta*/
+		ptr = ptr->ptSeuraava;
 	}
 
-	//fprintf("%s-%4.2fl:%4.2f€.\n", ptr->Ltyyppi, ptr->Ltilavuus, ptr->Lpantti);		/*vioperivi*/
-
+	haeAika(aikaleima);/*Kirjoitetaan tiedot tilapäislokiin*/
+	fprintf(tiedosto, "%s:%s-%4.2fl:%4.2f€.\n",aikaleima, ptr->Ltyyppi, ptr->Ltilavuus, ptr->Lpantti);
 	fclose(tiedosto);															/*Suljetan tiedosto*/
 }
 
@@ -165,27 +173,15 @@ void valiLoki(pTiedot *pA, int numero) {										/*Aliohjelma tietojen tallenta
 void loppuLoki(float summa, int kpl) {											/*Aliohjelma palautustietojen tallentamiseen päälokiin*/
 
 	FILE* tiedosto;
-	time_t nyt;																	/*Haetaan aika ja siihen liittyviä määrittelyjä*/
-	struct tm *aika;
-	time(&nyt);
-	aika = localtime(&nyt);
+	char aikaleima[20];
 
-	if ((tiedosto=fopen("lokitiedosto.txt","a")) == NULL) {						/*Avataan lokitiedosto lisäys-tilaan*/
-		printf("Tiedoston avaaminen epäonnistui.\n");							/*Jos tiedoston avaaminen epäonnistuu*/
+	if ((tiedosto = fopen("lokitiedosto.txt","a")) == NULL) {					/*Avataan lokitiedosto lisäys-tilaan*/
+		perror("Tiedoston avaaminen epäonnistui");								/*Jos tiedoston avaaminen epäonnistuu*/
 		exit(1);
 	}
 
-	if (aika->tm_min < 10){														/*Kirjoitetaan tiedot päälokitiedostoon*/
-		fprintf(tiedosto, "%d.%d.%d %d:0%d - Palautukset %d kpl. Pantit %4.2f€.\n", aika->tm_mday, aika->tm_mon + 1,
-		aika->tm_year + 1900, aika->tm_hour, aika->tm_min, kpl, summa);			/*jos minuutit välillä 0-9*/
-	}
-	else{
-		fprintf(tiedosto, "%d.%d.%d %d:%d - Palautukset %d kpl. Pantit %4.2f€.\n", aika->tm_mday, aika->tm_mon + 1,
-		aika->tm_year + 1900, aika->tm_hour, aika->tm_min, kpl, summa);			/*jos minuutit välillä 10-59*/
-	}
-
-	//fprintf(tiedosto, "Palautukset %d kpl. Pantit %4.2f€.\n", kpl, summa);	/*vioperivi*/
-
+	haeAika(aikaleima);
+	fprintf(tiedosto, "%s - Palautukset %d kpl. Pantit %4.2f€.\n", aikaleima, kpl, summa);
 	fclose(tiedosto);
 }
 

@@ -55,11 +55,11 @@
  	do {
  		a = 1;																	/*kuinka monta alkiota listassa on*/
  		ptrr = *pA;																/*siirretään apupointteri listan alkuun*/
- 		printf("Syötä uusi pullo tai tölkki.\n");
+ 		printf("\nSyötä uusi pullo tai tölkki.\n");
  		while(ptrr != NULL) {													/*Tulostetaan kaikki mahdolliset palautettavat pullot ja tölkit*/
  			printf("%d) %s %4.2fl\n", a, ptrr->Ltyyppi, ptrr->Ltilavuus);
  			ptrr = ptrr->ptSeuraava;
- 			a=a+1;
+ 			a=a + 1;
  		}
 
  		printf("%d) Lopeta syöttö ja tulosta kuitti.\n", a);
@@ -82,14 +82,14 @@
  			else {
  				virhe2 = pVaraaMuisti(pAlku, vertailu);							/*lisätään palautuslistaan tuotenumero*/
  				if (virhe2 == 0) {												/*jos epäonnistuu*/
- 					printf("Virhe!\n");
+ 					printf("Pullon lisäys ei onnistunut, syötä pullo uudelleen.\n");
 					free(valinta);
  				}
 
  				else {															/*haetaan syötetyn tuotteen tiedot*/
  					ptrr = *pA;
 
- 					for (i=1; i<vertailu; i++) {
+ 					for (i = 1; i<vertailu; i++) {
  						ptrr = ptrr->ptSeuraava;
  					}
 
@@ -114,11 +114,15 @@
  }
 
 
- int TarkistaPaa(char *valinta) {												/*päävalikon syötteen tulostus*/
+ int TarkistaPaa(char *valinta) {												/*päävalikon syötteen tarkistus*/
 
 	 int vertailu1, vertailu2;
 	 int vertailu3 = 0;
 	 int i = 0;
+
+     if (strlen(valinta) > 2) {                                                 /*jos syöte on liian pitkä esim. 01*/
+         return 0;
+     }
 
 	 while(valinta[i] != '\n') {												/*tarkistetaan syöte merkki kerrallaan*/
 	 	vertailu1 = isalpha(valinta[i]);
@@ -158,11 +162,15 @@
 	int vertailu3 = 0;
  	int i = 0;
 
- 	while(valinta[i] != '\n') {													/*tarkistetaan syöte merkki kerrallaan*/
+    if (valinta[0] == '0') {
+        return 0;
+    }
+
+ 	while (valinta[i] != '\n') {												/*tarkistetaan syöte merkki kerrallaan*/
  		vertailu1 = isalpha(valinta[i]);
  		vertailu2 = isalnum(valinta[i]);
 
-		if(vertailu1 != 0 && vertailu2 != 0) {									/*jos merkki on kirjain*/
+		if (vertailu1 != 0 && vertailu2 != 0) {									/*jos merkki on kirjain*/
 			vertailu3 = 1;
 			break;
 		}
@@ -187,6 +195,62 @@
 	else {																		/*jos syöte oli väärä*/
 		return 0;
 	}
+}
+
+void haeAika(char *pAika) {
+
+    time_t nyt;																	/*Haetaan aika*/
+    struct tm *aika;
+    time(&nyt);
+    aika = localtime(&nyt);
+
+    strftime(pAika, 20, "%d.%m.%Y %H:%M", aika);                                /*Muodostetaan aikaleima*/
+}
+
+
+int TarkistaTiedosto(char *pApu) {												/*tiedoston tarkistus*/
+
+    int vertailu1, vertailu2;
+    int vertailu3 = 0;
+    int i = 0;
+
+    while(pApu[i] != '\n') {												    /*tarkistetaan syöte merkki kerrallaan*/
+       vertailu1 = isalpha(pApu[i]);
+       vertailu2 = isalnum(pApu[i]);
+
+       if(vertailu1 != 0 && vertailu2 != 0) {									/*jos merkki on kirjain*/
+           if (vertailu3 == 0) {
+               vertailu3 = 0;
+               break;
+           }
+       }
+
+       else if (vertailu1 == 0 && vertailu2 != 0) {							    /*jos merkki on numero*/
+           vertailu3 = 1;
+       }
+
+       else if(pApu[i] == '\0') {
+           break;
+       }
+
+       else {																	/*jos merkki on merkki*/
+           vertailu3 = 2;
+       }
+       i++;
+    }
+
+
+    if (vertailu3 == 0) {                                                       /*palauttaa nollan jos kirjaimia*/
+       return 0;
+    }
+
+    else if(vertailu3 == 1) {                                                   /*palauttaa ykkösen jos numeroita*/
+        return 1;
+    }
+
+    else {                                                                      /*muussa tapauksessa*/
+        return 2;
+    }
 }
 
 /*eof*/

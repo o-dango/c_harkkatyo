@@ -1,11 +1,9 @@
 /*
  * CT60A0210 Käytännön ohjelmoinnin harkkatyö.
  * Päivämäärä: kevät 16
- * Yhteistyö ja lähteet, nimi ja yhteistyön muoto: stackoverflow.com
+ * Yhteistyö ja lähteet, nimi ja yhteistyön muoto:
  */
 
- typedef struct tLista *pTiedot;
- typedef struct nLista *Maara;
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
@@ -22,24 +20,11 @@ int main(void) {
     pTiedot pA;
     Maara pAlku;
     int lopetus = 1;
-    int inttivalinta;
+    int inttivalinta;                                                           /*numeroksi muutettu valintasyöte*/
 
     do {
         pA = NULL;
         pAlku = NULL;
-
-        if((tiedosto = fopen("tilapaistiedosto.txt", "w")) != NULL) {           /*tyhjennetään edellinen tilapäislokijuttu*/
-            fprintf(tiedosto, "Tilapäinen lokitiedosto.\n\n");
-            fflush(tiedosto);
-            fclose(tiedosto);
-        }
-
-        else {
-            printf("Tiedoston avaus epäonnistui!\n");                           /*jos tiedoston avaus epäonnistuu*/
-            fclose(tiedosto);
-            exit(1);
-        }
-
         tiedostoLuku(&pA);                                                      /*luetaan tuotetiedot listaan*/
 
         inttivalinta = PaaValikko();                                            /*ajetaan päävalikko*/
@@ -47,18 +32,29 @@ int main(void) {
             switch(inttivalinta) {
 
                 case 1:
+                if((tiedosto = fopen("tilapaistiedosto.txt", "w")) != NULL) {   /*tyhjennetään edellinen tilapäislokitiedosto*/
+                    fprintf(tiedosto, "Tilapäinen lokitiedosto.\n\n");
+                    fclose(tiedosto);
+                }
+
+                else {
+                    perror("\nTilapäislokitiedoston avaus epäonnistui!\n");     /*jos tiedoston avaus epäonnistuu*/
+                    fclose(tiedosto);
+                    exit(1);
+                }
+
                 PalautusValikko(&pA, &pAlku);                                   /*ajetaan palautusohjelma*/
                 break;
 
                 case 0:
-                printf("Suljetaan pullonpalautusautomaatti.\n");                /*lopetus*/
+                printf("\nSuljetaan pullonpalautusautomaatti.\n");              /*lopetus*/
                 tVapautaMuisti(pA);                                            	/*vapautetaan käytetty muisti*/
                 pVapautaMuisti(pAlku);
                 lopetus = 0;
                 break;
 
                 default:                                                        /*virheellinen syöte*/
-                printf("Väärä valinta!\n");
+                printf("\nVäärä valinta!\n");
                 tVapautaMuisti(pA);                                             /*vapautetaan käytettyä muistia*/
                 break;
         }
